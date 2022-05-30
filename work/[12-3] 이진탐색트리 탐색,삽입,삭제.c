@@ -1,173 +1,165 @@
-#pragma warning(disable: 4996)
+// p.306 프로그램 8.13 : 이진탐색트리 탐색/삽입/삭제 연산
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <memory.h>
+#define _CRT_NO_SECURE_WARNINGS
 
-#define MAX_WORD_SIZE 100
-#define MAX_MEANING_SIZE 200
-
-typedef struct {
-	char word[MAX_WORD_SIZE];
-	char meaning[MAX_MEANING_SIZE];
-} element;
+typedef int element;	// element 자료형 선언
 typedef struct TreeNode {
 	element key;
 	struct TreeNode* left, * right;
 }TreeNode;
 
-int compare(element e1, element e2) {
-	return strcmp(e1.word, e2.word);
+// 이진탐색트리 탐색 함수
+TreeNode* search(TreeNode* node, element key) {
+
+	// 탐색키와 현재 트리 루트의 키값을 비교하여 작을 경우 왼쪽 트리 루트,
+	// 클 경우 오른쪽 트리 루트로 이동하며 탐색키가 있는 루트 탐색 후 반환
+	while (node != NULL) {
+		if (key == node->key)	// 탐색키와 현재 트리 루트의 키값이 같을 경우 반환
+			return node;
+		else if (key < node->key)	
+			return search(node->left, key);
+		else
+			return search(node->right, key);
+	}
+	return NULL;	// 트리가 공백일 경우 NULL 반환
 }
 
-void display(TreeNode* p) {
-	if (p != NULL) {
-		printf("(");
-		display(p->left);
-		printf("%s", p->key.word);
-		display(p->right);
-		printf(")");
-	}
-}
-TreeNode* search(TreeNode* root, element key) {
-	TreeNode* p = root;
-	while (p != NULL) {
-		switch (compare(key, p->key)) {
-		case -1:
-			p = p->left; break;
-		case 0:
-			return p;
-		case 1:
-			p = p->right; break;
-		}
-	}
-	return p;
+// 이진탐색트리 키값을 전달받아 노드 생성후 반환 함수
+TreeNode* new_node(element item) {
+	TreeNode* temp = (TreeNode*)malloc(sizeof(TreeNode));
+	
+	temp->key = item;
+	temp->left = temp->right = NULL;
+	return temp;
 }
 
-void insert_node(TreeNode** root, element key) {
-	TreeNode* p, * t;
-	TreeNode* n;
-	t = *root;
-	p = NULL;
-	while (t != NULL) {
-		if (compare(key, t->key) == 0) return;
-		p = t;
-		if (compare(key, t->key) < 0)
-			t = t->left;
-		else
-			t = t->right;
-	}
-	n = (TreeNode*)malloc(sizeof(TreeNode));
-	if (n == NULL)
-		return;
-	n->key = key;
-	n->left = n->right = NULL;
-	if (p != NULL)
-		if (compare(key, t->key) < 0)
-			p->left = n;
-		else p->right = n;
-	else *root = n;
+// 이진탐색트리 삽입 함수
+TreeNode* insert_node(TreeNode* node, element key) {
+	// 트리가 공백일 경우 새로운 노드 생성 후 반환
+	if (node == NULL)
+		return new_node(key);
+
+	// 트리가 공백이 아닐 경우 현재 트리 루트의 키 값과 삽입할 키 값을 비교하여
+	// 작을 경우 현재 트리 루트의 왼쪽 루트에 삽입, 클 경우 오른쪽에 삽입
+	if (key < node->key)
+		node->left = insert_node(node->left, key);
+	else if (key > node->key)
+		node->right = insert_node(node->right, key);
+
+	// 노드 삽입 후 변경된 루트 포인터 반환
+	return node;
 }
 
-void delete_node(TreeNode** root, element key) {
-	TreeNode* p, * child, * succ, * succ_p, * t;
-	// key 를 갖는 노드 t 를 탐색하며, p 는 t 의 부모 노드입니다!
-	p = NULL;
-	t = *root;
-	//key 를 가지고 있는 노드 t 를 탐색합니다.
-	while (t != NULL && compare(t->key, key) != 0) {
-		p = t;
-		t = (compare(t->key, key) < 0) ? t->left : t->right;
+// 이진탐색트리 맨 왼쪽 단말 노드(트리의 최소값) 탐색 함수
+TreeNode* min_value_node(TreeNode* node) {
+
+	// 현재 트리의 왼쪽 루트가 NULL이 될 떄 까지 왼쪽 트리 루트로 이동
+	while (node->left != NULL) {
+		node = node->left;
 	}
-	//key 가 없을 경우
-	if (t == NULL) {
-		printf("키값이 없습니다...");
-		return;
-	}
-	//key 는 찾았는데 터미널 노드인 경우
-	if ((t->left == NULL) && (t->right == NULL)) {
-		if (p != NULL) {
-			if (p->left == t)
-				p->left == NULL;
-			else p->right = NULL;
-		}
-		else
-			*root = NULL;
-	}
-	//key 는 찾았는데 한쪽만 서브트리가 있는 경우
-	else if ((t->left == NULL) || (t->right == NULL)) {
-		child = (t->left != NULL) ? t->left : t->right;
-		if (p != NULL) {
-			if (p->left == t)
-				p->left = child;
-			else p->right = child;
-		}
-		else
-			*root = child;
-	}
-	//key 는 찾았는데 양쪽에 서브트리가 있는 경우
+	return node;
+}
+
+// 이진탐색트리 특정키 노드 삭제 함수
+TreeNode* delete_node(TreeNode* root, int key) {
+	TreeNode* temp = root;	// 제거할 노드를 삭제 후 새로 반환 할 트리 생성
+	if (root == NULL)
+		return root;
+
+	if (key < root->key)
+		root->left = delete_node(root->left, key);
+	else if (key > root->key)
+		root->right = delete_node(root->right, key);
 	else {
-		succ_p = t;
-		succ = t->right;
-		// 우측 서브트리로 쭉쭉 내려갑시다.
-		while (succ->left != NULL) {
-			succ_p = succ;
-			succ = succ->left;
+		if (root->left == NULL) {
+			temp = root->right;
+			free(root);
+			return temp;
 		}
-		if (succ_p->left == succ)
-			succ_p->left = succ->right;
-		else
-			succ_p->right = succ->right;
-		t->key = succ->key;
-		t = succ;
+		else if (root->right == NULL) {
+			temp = root->left;
+			free(root);
+			return temp;
+		}
+		
+		temp = min_value_node(root->right);
+		root->key = temp->key;
+		root->right = delete_node(root->right, temp->key);
 	}
-	free(t);
+	return root;
 }
 
-void help() {
-	printf("--------------------\n");
-	printf("i : 입력(input)\n");
-	printf("d : 삭제(delete)\n");
-	printf("s : 탐색(search)\n");
-	printf("p : 출력(print)\n");
-	printf("q : 종료(quit)\n");
-	printf("--------------------\n");
+// 이진탐색트리 중위 순회 후 출력 함수
+void inorder(TreeNode* root) {
+	if (root != NULL) {
+		inorder(root->left);
+		printf("[%d] ", root->key);
+		inorder(root->right);
+	}
 }
 
-void main() {
-	char command;
-	element e;
+void menu() {
+	printf("\n----------------------------------------------------\n");
+	printf("1 : 탐색   2 : 삽입   3 : 삭제   4 : 출력   5 : 종료\n");
+	printf("----------------------------------------------------\n");
+	printf("수행할 작업 : ");
+}
+
+int main(void) {
 	TreeNode* root = NULL;
-	TreeNode* tmp;
+	TreeNode* temp = NULL;
+	int select_node, command;
 
-	do {
-		help();
-		command = getchar();
-		fflush(stdin);
+	for (int i = 70; i > 0; i -= 10) {
+		root = insert_node(root, i);
+	}
+
+	printf("이진탐색트리 중위 순회 결과\n");
+	inorder(root); printf("\n");
+
+	while (1) {
+		menu();
+		scanf("%d", &command);
+
 		switch (command) {
-		case 'i':
-			printf("단어 : ");
-			gets(e.word);
-			printf("의미 : ");
-			gets(e.meaning);
-			insert_node(&root, e);
+		case 1: 
+			printf("\n\n탐색할 노드 입력 : ");
+			scanf("%d", &select_node);
+			if (search(root, select_node) != NULL)
+				printf("이진탐색트리에서 %d 발견 성공\n", select_node);
+			else
+				printf("이진탐색트리에서 %d 발견 실패\n", select_node);
 			break;
-		case 'd':
-			printf("단어 : ");
-			gets(e.word);
-			delete_node(&root, e);
+		case 2:
+			printf("\n\n삽입할 노드 입력 : ");
+			scanf("%d", &select_node);
+			if (search(root, select_node) != NULL) {
+				printf("중복 노드 입니다. 다시 입력해주세요.\n");
+				continue;
+			}
+			else if(search(root, select_node) == NULL) {
+				root = insert_node(root, select_node);
+				printf("정상적으로 삽입 완료 하였습니다.\n");
+				break;
+			}
+			else {
+				printf("잘못 입력하셨습니다..\n");
+				continue;
+			}
+		case 3:
+			printf("\n\n삭제할 노드 입력 : ");
+			scanf("%d", &select_node);
+			root = delete_node(root, select_node);
+			printf("정상적으로 삭제 되었습니다.\n");
 			break;
-		case 'p':
-			display(root);
-			printf("\n");
+		case 4:
+			inorder(root); printf("\n");
 			break;
-		case 's':
-			printf("단어 : ");
-			gets(e.word);
-			tmp = search(root, e);
-			if (tmp != NULL)
-				printf("의미 : %s\n", e.meaning);
-			break;
+		case 5:
+			printf("프로그램을 종료합니다.\n");
+			return 0;
 		}
-	} while (command != 'q');
+	}
+	return 0;
 }

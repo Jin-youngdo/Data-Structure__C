@@ -208,7 +208,10 @@
     <ClCompile Include="[12-4] 이진탐색트리 응용_영어사전.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="[12-5] 이진탐색트리 분석.c" />
+    <ClCompile Include="[12-5] 이진탐색트리 분석.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="[12-6] 이진트리 응용 함수.c" />
     <ClCompile Include="[2-1]slow_power.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </ClCompile>

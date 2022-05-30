@@ -1,4 +1,4 @@
-// p.312 프로그램8.14 : 이진탐색트리를 이용한 영어사전
+// p.312 프로그램8.14 : 이진탐색트리를 이용한 영어사전 [과제]
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -24,30 +24,29 @@ int compare(element key1, element key2) {
 	return strcmp(key1.word, key2.word);
 }
 
-// 이진탐색트리 출력 함수
-void display(TreeNode* root) {
-	if (root != NULL) {
-		display(root->left);
+// 이진탐색트리 출력 함수[중위 순회]
+void display(TreeNode* node) {
+	if (node != NULL) {
 		printf("(");
-		printf("%s : %s", root->key.word, root->key.meaning);
+		display(node->left);
+		printf(" [%s : %s] ", node->key.word, node->key.meaning);
 		printf(")");
-		display(root->right);
+		display(node->right);
 	}
 }
 
 // 이진탐색트리 탐색 함수
-TreeNode* search(TreeNode* root, element key) {
-	TreeNode* p = root;
+TreeNode* search(TreeNode* node, element key) {
 
-	while (p != NULL) {
-		if (compare(key, p->key) == 0)	// key.word가 root->key.word와 같은 경우
-			return p;
-		else if (compare(key, p->key) < 0)
-			p = p->left;
-		else if (compare(key, p->key) > 0)
-			p = p->right;
+	while (node != NULL) {
+		if (compare(key, node->key) == 0)
+			return node;
+		else if (compare(key, node->key) < 0)
+			node = node->left;
+		else
+			node = node->right;
 	}
-	return p;	// 탐색에 실패했을 경우 NULL 반환
+	return NULL;	// 탐색에 실패했을 경우 NULL 반환
 }
 
 // 노드 생성 함수
@@ -72,11 +71,10 @@ TreeNode* insert_node(TreeNode* node, element key) {
 	return node;
 }
 
-// 트리의 최소값 탐색 함수
+// 이진탐색트리 맨 왼쪽 단말 노드(트리의 최소값) 탐색 함수
 TreeNode* min_value_node(TreeNode* root) {
 	TreeNode* current = root;
 
-	// 트리의 맨 왼쪽 단말 노드 탐색
 	while (current->left != NULL)
 		current = current->left;
 	return current;
@@ -94,6 +92,7 @@ TreeNode* delete_node(TreeNode* root, element key) {
 		root->right = delete_node(root->right, key);
 	// 키가 루트와 같을 경우 노드 삭제
 	else {
+		// 자식이 하나거나 없는 경우
 		if (root->left == NULL) {
 			TreeNode* temp = root->right;
 			free(root);
@@ -104,9 +103,10 @@ TreeNode* delete_node(TreeNode* root, element key) {
 			free(root);
 			return temp;
 		}
+		// 자식이 둘다 있는 경우 중위 후속자 가져오기(오른쪽 서브트리의 최소값 노드)
 		TreeNode* temp = min_value_node(root->right);
-		root->key = temp->key;	// 중위 순회시 후계 노드 복사
-		root->right = delete_node(root->right, temp->key);	// 중위 순회시 후계 노드 삭제
+		root->key = temp->key;	// 중위 후속자의 키값을 전달
+		root->right = delete_node(root->right, temp->key);	// 현재 노드의 중위 후속자 제거
 	}
 	return root;
 }
@@ -159,6 +159,7 @@ int main(void) {
 				printf("단어가 존재하지 않습니다.\n");
 			break;
 		case 'q':
+			printf("프로그램을 종료합니다.\n");
 			return 0;
 		}
 	}

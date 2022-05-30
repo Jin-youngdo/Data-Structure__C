@@ -276,5 +276,8 @@
     <ClCompile Include="[12-5] 이진탐색트리 분석.c">
       <Filter>소스 파일\12주차</Filter>
     </ClCompile>
+    <ClCompile Include="[12-6] 이진트리 응용 함수.c">
+      <Filter>소스 파일\12주차</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
